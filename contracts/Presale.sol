@@ -11,6 +11,7 @@ contract PresaleContract is Ownable {
   using SafeMath for uint256;
 
   IERC20 public Token;
+  uint256 public TokenDecimals;
 
   mapping(address => uint256) public investments; // total WEI invested per address (1ETH = 1e18WEI)
   mapping (uint256=> address) public investors;   // list of participating investor addresses
@@ -27,8 +28,9 @@ contract PresaleContract is Ownable {
 
   bool public isPresaleActive = false; // investing is only allowed if presale is active
 
-  constructor(address tokenAddress) {
+  constructor(address tokenAddress, uint256 tokenDecimals) {
     Token = IERC20(tokenAddress);
+    TokenDecimals = tokenDecimals;
   }
 
   function startPresale() public onlyOwner {
@@ -93,9 +95,9 @@ contract PresaleContract is Ownable {
     uint256 amountOfTokens;
 
     if (isDevAddress(_msgSender())){
-      amountOfTokens = msg.value.mul(10 ** 18).div(INVESTMENT_RATIO_DEVELOPER);
+      amountOfTokens = msg.value.mul(10 ** TokenDecimals).div(INVESTMENT_RATIO_DEVELOPER);
     } else {
-      amountOfTokens = msg.value.mul(10 ** 18).div(INVESTMENT_RATIO_PRESALE);
+      amountOfTokens = msg.value.mul(10 ** TokenDecimals).div(INVESTMENT_RATIO_PRESALE);
     }
 //    console.log("msg.value: '%s'", msg.value);
 //    console.log("INVESTMENT_RATIO_DEVELOPER: '%s'", INVESTMENT_RATIO_DEVELOPER);

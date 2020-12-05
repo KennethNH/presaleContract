@@ -30,13 +30,14 @@ describe("PresaleContract", async function() {
 
     // Deploy dummy token contract
     // Contract send entire balance to contract creator
+    const TokenDecimals = 18
     let DegenLamboToken = await ethers.getContractFactory("DegenLamboToken");
-    DegenLamboTokenContract = await DegenLamboToken.deploy("DegenLambo", 18);
+    DegenLamboTokenContract = await DegenLamboToken.deploy("DegenLambo", TokenDecimals);
     await DegenLamboTokenContract.deployed();
 
     // Deploy pre-sale distribution contract
     let _presale = await ethers.getContractFactory("PresaleContract");
-    PreSaleContract = await _presale.deploy(DegenLamboTokenContract.address);
+    PreSaleContract = await _presale.deploy(DegenLamboTokenContract.address, TokenDecimals);
     await PreSaleContract.deployed();
 
     // send entire token balance to pre-sale contract
@@ -154,36 +155,7 @@ describe("PresaleContract", async function() {
     expect(TokenContractBalanceParsed).to.equal(presaleContractTokenBalanceBeforeParsed)
 
   });
-  it("Should send remaining pre-sale tokens to token contract", async function (){
-    //todo use ether utils here...
-    const investmentLimit = await PreSaleContract.getPresaleInvestmentLimit()
 
-    await PreSaleContract.addWhitelistAddresses([testAccountSecondary.address]);
-    await PreSaleContract.startPresale()
-
-    await testAccountSecondary.sendTransaction({
-      gasLimit: gasLimit,
-      gasPrice: gasPrice,
-      to: PreSaleContract.address,
-      value: investmentLimit
-    });
-
-    let presaleContractTokenBalanceBefore = await DegenLamboTokenContract.balanceOf(PreSaleContract.address);
-    const presaleContractTokenBalanceBeforeParsed = Number(ethers.utils.formatEther(presaleContractTokenBalanceBefore))
-
-    await PreSaleContract.endPresale()
-
-    let presaleContractTokenBalanceAfter = await DegenLamboTokenContract.balanceOf(PreSaleContract.address);
-    const presaleContractTokenBalanceAfterParsed = Number(ethers.utils.formatEther(presaleContractTokenBalanceAfter))
-
-    let TokenContractBalance = await DegenLamboTokenContract.balanceOf(DegenLamboTokenContract.address);
-    const TokenContractBalanceParsed = Number(ethers.utils.formatEther(TokenContractBalance))
-
-
-    expect(presaleContractTokenBalanceAfterParsed).to.equal(Number(0))
-    expect(TokenContractBalanceParsed).to.equal(presaleContractTokenBalanceBeforeParsed)
-
-  });
   // it("Should allow developer whitelisted address to send investment 2.88 ETH for pre-sale", async function(){
   //
   //   // const balance = await testAccount.getBalance()
