@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 contract PresaleContract is Ownable {
   using SafeMath for uint256;
 
-  IERC20 public DegenLamboToken;
+  IERC20 public Token;
 
   mapping(address => uint256) public investments; // total WEI invested per address (1ETH = 1e18WEI)
   mapping (uint256=> address) public investors;   // list of participating investor addresses
@@ -22,21 +22,13 @@ contract PresaleContract is Ownable {
   uint256 public constant INVESTMENT_LIMIT_PRESALE   = 1.5  ether; // 1.5 ETH is maximum investment limit for pre-sale
   uint256 public constant INVESTMENT_LIMIT_DEVELOPER = 2.88 ether; // 2.88 ETH is maximum investment limit for developer pre-sale
 
-  uint256 public constant INVESTMENT_RATIO_PRESALE   = 0.28 * 1 ether; // pre-sale rate is 0.28 ETH/$LAMBO
-  uint256 public constant INVESTMENT_RATIO_DEVELOPER = 0.18 * 1 ether; // developer pre-sale rate is 0.18 ETH/$LAMBO
+  uint256 public constant INVESTMENT_RATIO_PRESALE   = 0.28 ether; // pre-sale rate is 0.28 ETH/$LAMBO
+  uint256 public constant INVESTMENT_RATIO_DEVELOPER = 0.18 ether; // developer pre-sale rate is 0.18 ETH/$LAMBO
 
   bool public isPresaleActive = false; // investing is only allowed if presale is active
 
-  constructor() {
-
-  }
-
-  function getPresaleInvestmentLimit() view public returns (uint256) {
-    return INVESTMENT_LIMIT_PRESALE;
-  }
-
-  function getDeveloperPresaleInvestmentLimit() view public returns (uint256) {
-    return INVESTMENT_LIMIT_DEVELOPER;
+  constructor(address tokenAddress) {
+    Token = IERC20(tokenAddress);
   }
 
   function startPresale() public onlyOwner {
@@ -46,11 +38,7 @@ contract PresaleContract is Ownable {
   function endPresale() public onlyOwner {
     isPresaleActive = false;
     payable(owner()).transfer(address(this).balance);
-    DegenLamboToken.transfer(address(DegenLamboToken), DegenLamboToken.balanceOf(address(this)));
-  }
-
-  function setToken(address tokenAddress) public {
-    DegenLamboToken = IERC20(tokenAddress);
+    Token.transfer(address(Token), Token.balanceOf(address(this)));
   }
 
   function addWhitelistAddresses(address[] calldata _whitelistAddresses) external onlyOwner {
@@ -88,8 +76,9 @@ contract PresaleContract is Ownable {
     _;
   }
 
-  receive() payable
+  receive()
     external
+    payable
     presaleActive
     eligibleForPresale
   {
@@ -115,7 +104,7 @@ contract PresaleContract is Ownable {
 //    console.log("addressTotalInvestment: '%s'", addressTotalInvestment);
 //    console.log("investments[_msgSender()]: '%s'", investments[_msgSender()]);
 
-    DegenLamboToken.transfer(_msgSender(), amountOfTokens);
+    Token.transfer(_msgSender(), amountOfTokens);
 
     investors[_investorCount] = msg.sender;
     _investorCount++;
@@ -138,6 +127,14 @@ contract PresaleContract is Ownable {
 
   function getInvestorCount() public view returns (uint256){
     return _investorCount;
+  }
+
+  function getPresaleInvestmentLimit() view public returns (uint256) {
+    return INVESTMENT_LIMIT_PRESALE;
+  }
+
+  function getDeveloperPresaleInvestmentLimit() view public returns (uint256) {
+    return INVESTMENT_LIMIT_DEVELOPER;
   }
 
 }

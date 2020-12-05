@@ -52,12 +52,12 @@ contract DegenLamboToken is Context, IERC20 {
      * All three of these values are immutable: they can only be set once during
      * construction.
      */
-    constructor (string memory name_, string memory symbol_, address  presaleContractAddress_) public {
+    constructor (string memory name_, string memory symbol_) public {
         _name = name_;
         _symbol = symbol_;
         _decimals = 18;
         _totalSupply = 2049 * 10 ** _decimals;
-        _balances[presaleContractAddress_] = _totalSupply;
+        _balances[msg.sender] = _totalSupply;
     }
 
     /**
