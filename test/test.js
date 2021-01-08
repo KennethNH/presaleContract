@@ -35,6 +35,11 @@ describe("PresaleContract", async function() {
     DegenLamboTokenContract = await DegenLamboToken.deploy("DegenLambo", TokenDecimals);
     await DegenLamboTokenContract.deployed();
 
+    // Deploy Nist token contract
+    let NistToken = await ethers.getContractFactory("DegenLamboToken");
+    NistTokenContract = await DegenLamboToken.deploy("DegenLambo", TokenDecimals);
+    await DegenLamboTokenContract.deployed();
+
     // Deploy pre-sale distribution contract
     let _presale = await ethers.getContractFactory("PresaleContract");
     PreSaleContract = await _presale.deploy(DegenLamboTokenContract.address, TokenDecimals);
@@ -125,7 +130,7 @@ describe("PresaleContract", async function() {
 
   });
 
-  it("Should send remaining pre-sale tokens to token contract", async function (){
+  it("Should send remaining pre-sale tokens to token contract after pre-sale", async function (){
     //todo use ether utils here...
     const investmentLimit = await PreSaleContract.getPresaleInvestmentLimit()
 
@@ -156,54 +161,7 @@ describe("PresaleContract", async function() {
 
   });
 
-  // it("Should allow developer whitelisted address to send investment 2.88 ETH for pre-sale", async function(){
-  //
-  //   // const balance = await testAccount.getBalance()
-  //   // console.log(ethers.utils.formatEther(balance))
-  //
-  //   await PreSaleContract.addWhitelistAddresses([testAccountPrimary.address]);
-  //   await PreSaleContract.addDevAddresses([testAccountPrimary.address]);
-  //
-  //   try {
-  //     let tx = await testAccountPrimary.sendTransaction({
-  //       gasLimit: gasLimit,
-  //       gasPrice: gasPrice,
-  //       to: PreSaleContract.address,
-  //       value: ethers.utils.parseEther("2.88")
-  //     });
-  //   } catch (e){
-  //     console.log("should be a error here", e.message)
-  //   }
-  // });
-
-  // it("Should refund everyone that invested in the pre-sale", async function (){
-  //
-  //   await PreSaleContract.addWhitelistAddresses([testAccountPrimary.address]);
-  //
-  //   let etherBalance = await testAccountPrimary.getBalance();
-  //   console.log("testAccountPrimary balance before: %s",etherBalance)
-  //
-  //   let tx = await testAccountPrimary.sendTransaction({
-  //     gasLimit: gasLimit,
-  //     gasPrice: gasPrice,
-  //     to: PreSaleContract.address,
-  //     value: ethers.utils.parseEther("0.5")
-  //   });
-  //
-  //   etherBalance = await testAccountPrimary.getBalance();
-  //   console.log("testAccountPrimary balance after investment: %s",etherBalance)
-  //
-  //   // const balance = await DegenLamboTokenContract.balanceOf(PreSaleContract.address);
-  //   // console.log("contract balance: %s", ethers.utils.formatEther(balance))
-  //
-  //   await PreSaleContract.refundInvestors();
-  //
-  //   etherBalance = await testAccountPrimary.getBalance();
-  //   console.log("testAccountPrimary balance after refund: %s", ethers.utils.formatEther(etherBalance))
-  //
-  // })
-
-  it("Developer should get 5.555 tokens for a 1ETH investment", async function(){
+  it("Developer investor should get 5.555 tokens for a 1ETH investment", async function(){
 
     await PreSaleContract.addWhitelistAddresses([testAccountSecondary.address]);
     await PreSaleContract.addDevAddresses([testAccountSecondary.address]);
@@ -217,20 +175,41 @@ describe("PresaleContract", async function() {
     });
 
     let tokenBalance = await DegenLamboTokenContract.balanceOf(testAccountSecondary.address);
-    // expect(tokenBalance).to.equal(5.555555555555555555)
-    // console.log("tokenBalance is %s", ethers.utils.formatEther(tokenBalance))
+    expect(tokenBalance).to.equal("5555555555555555555")
 
-    const owner = await PreSaleContract.owner()
-    // console.log("Owner is %s", owner)
-    // console.log("testAccountPrimary.address is %s", testAccountPrimary.address)
+  });
 
-    const PresaleContractLamboBalance = await DegenLamboTokenContract.balanceOf(PreSaleContract.address);
-    // console.log("PresaleContractLamboBalance lambo token balance: %s", PresaleContractLamboBalance)
+  it("Pre-sale investor should get 3.571428571... tokens for a 1ETH investment", async function(){
 
-    const balance = await DegenLamboTokenContract.balanceOf(testAccountPrimary.address);
-    // console.log("TestAccountPrimary lambo token balance: %s", ethers.utils.formatEther(balance))
+    await PreSaleContract.addWhitelistAddresses([testAccountSecondary.address]);
+    await PreSaleContract.startPresale()
 
-    const ethBalanceInvested = await PreSaleContract.getInvestedAmount(testAccountPrimary.address)
-    // console.log("balanceOnContract lambo token balance: %s", ethers.utils.formatEther(ethBalanceInvested))
+    await testAccountSecondary.sendTransaction({
+      gasLimit: gasLimit,
+      gasPrice: gasPrice,
+      to: PreSaleContract.address,
+      value: ethers.utils.parseEther("1")
+    });
+
+    let tokenBalance = await DegenLamboTokenContract.balanceOf(testAccountSecondary.address);
+    expect(tokenBalance).to.equal("3571428571428571428")
+
+  });
+
+  it("Investors should get refunded if refund function is called", async function(){
+
+    await PreSaleContract.addWhitelistAddresses([testAccountSecondary.address]);
+    await PreSaleContract.startPresale()
+
+    await testAccountSecondary.sendTransaction({
+      gasLimit: gasLimit,
+      gasPrice: gasPrice,
+      to: PreSaleContract.address,
+      value: ethers.utils.parseEther("1")
+    });
+
+    let tokenBalance = await DegenLamboTokenContract.balanceOf(testAccountSecondary.address);
+    expect(tokenBalance).to.equal("3571428571428571428")
+
   });
 });

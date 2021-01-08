@@ -8,4 +8,8 @@ Install dependencies as required.
 
 ``npx hardhat test``
 
+For Nist Pre-sale
+
+``npx hardhat test ./test/nistPresaleTest.js``
+
 
